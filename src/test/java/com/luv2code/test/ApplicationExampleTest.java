@@ -9,14 +9,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(classes = MvcTestingExampleApplication.class)
@@ -41,6 +45,9 @@ class ApplicationExampleTest {
 
     @Autowired
     StudentGrades studentGrades;
+
+    @Autowired
+    ApplicationContext context;
 
     @BeforeEach
     public void beforeEach() {
@@ -86,5 +93,36 @@ class ApplicationExampleTest {
     @Test
     void checkNullForStudentGrades() {
         assertNotNull(studentGrades.checkNull(student.getStudentGrades().getMathGradeResults()), "It shouldn't be null");
+    }
+
+    @DisplayName("Create student without grades init")
+    @Test
+    void createStudentWithoutGradesInit() {
+        CollegeStudent studentTwo = context.getBean("collegeStudent", CollegeStudent.class);
+        studentTwo.setFirstname("Chad");
+        studentTwo.setLastname("Darby");
+        studentTwo.setEmailAddress("chad.darby@luv2code_school.com");
+        assertNotNull(studentTwo.getFirstname());
+        assertNotNull(studentTwo.getLastname());
+        assertNotNull(studentTwo.getEmailAddress());
+        assertNull(studentTwo.getStudentGrades());
+    }
+
+    @DisplayName("Verify students are prototypes")
+    @Test
+    void verifyStudentsArePrototypes() {
+        CollegeStudent studentTwo = context.getBean("collegeStudent", CollegeStudent.class);
+        assertNotSame(student, studentTwo);
+    }
+
+    @DisplayName("Find grade point average")
+    @Test
+    void findGradePointAverage() {
+        assertAll("Testing all assertEquals",
+                ()->assertEquals(353.25, studentGrades.addGradeResultsForSingleClass(
+                        student.getStudentGrades().getMathGradeResults()
+                )),
+                ()->assertEquals(88.31, studentGrades.findGradePointAverage(student.getStudentGrades().getMathGradeResults()))
+                );
     }
 }
